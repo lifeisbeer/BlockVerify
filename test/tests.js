@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
-const { calcUser, calcCertificate, callData } = require("../other/calculations.js");
+const { calcUser, calcCertificate, callData } = require("../scripts/calculations.js");
 
 describe("BlockVerify", function () {
 

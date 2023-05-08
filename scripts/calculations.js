@@ -16,7 +16,7 @@ async function calcCertificate(user, attributes) {
 }
 
 async function exportCallDataGroth16(input) {
-    const { proof, publicSignals } = await groth16.fullProve(input, "./other/proofOfSuitability.wasm", "./other/groth16_final.zkey");
+    const { proof, publicSignals } = await groth16.fullProve(input, "./scripts/proofOfSuitability.wasm", "./scripts/groth16_final.zkey");
 
     const calldata = await groth16.exportSolidityCallData(proof, publicSignals);
 
