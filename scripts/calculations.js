@@ -31,12 +31,13 @@ async function exportCallDataGroth16(input) {
     return argv;
 }
 
-async function callData(password, userSalt, attributes, certificate, minAttributes) {
+async function callData(password, userSalt, attributes, certificate, direction, minAttributes) {
     const INPUT = {
         password: password,
         userSalt: userSalt,
         attributes: attributes,
         certificate: certificate,
+        direction: direction,
         minAttributes: minAttributes      
     };
 

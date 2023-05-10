@@ -17,7 +17,7 @@ async function main() {
 
     const password = "123";
     const salt = "456";
-    const userAttributes = ["1", "73", "750"];
+    const userAttributes = ["1", "73", "600"];
     const userId = await calcUser(password, salt);
     console.log("User ID:", userId);
     const certificate = await calcCertificate(userId, userAttributes);
@@ -27,12 +27,13 @@ async function main() {
     console.log("User attributes verified, tx:", receipt.transactionHash);
 
     const challenge = "test";
+    const direction = ["0", "0", "1"];
     const minAttributes = ["0", "70", "670"]; 
-    tx = await blockVerify.connect(challenger).createChallenge(challenge, minAttributes);
+    tx = await blockVerify.connect(challenger).createChallenge(challenge, direction, minAttributes);
     receipt = await tx.wait();
     console.log("Challenge created, tx:", receipt.transactionHash);
     
-    const proof = await callData(password, salt, userAttributes, certificate, minAttributes);
+    const proof = await callData(password, salt, userAttributes, certificate, direction, minAttributes);
     console.log("Proof:", proof);
     tx = await blockVerify.connect(user).respond(0, 1, proof); // challengeId = 0, verifierId = 1 (owner is also a verifier)
     receipt = await tx.wait();

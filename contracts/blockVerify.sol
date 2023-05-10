@@ -18,7 +18,8 @@ contract zkSuitability {
     uint256 public challengeNum = 0;
     struct Challenge {
         string description;
-        uint16[ATTR_NUM] minAttributes;
+        uint8[ATTR_NUM] direction; 
+        uint32[ATTR_NUM] minAttributes;
         address[] responses;
     }
     Challenge[] public challenges;
@@ -71,9 +72,10 @@ contract zkSuitability {
 
     function createChallenge(
         string calldata description, 
-        uint16[ATTR_NUM] calldata minAttributes
+        uint8[ATTR_NUM] calldata direction,
+        uint32[ATTR_NUM] calldata minAttributes
     ) public {
-        challenges.push(Challenge(description, minAttributes, new address[](0)));
+        challenges.push(Challenge(description, direction, minAttributes, new address[](0)));
         emit NewChallenge(challengeNum);
         challengeNum += 1;
     }
@@ -88,7 +90,7 @@ contract zkSuitability {
     }
 
     function _verifyProof(
-        uint256[ATTR_NUM+1] memory input,
+        uint256[ATTR_NUM*2+1] memory input,
         uint256[8] calldata proof
     ) 
         internal 
@@ -112,10 +114,11 @@ contract zkSuitability {
         isVerified(verifierId)
         isChallenge(challengeId) 
     {
-        uint256[ATTR_NUM+1] memory input;
+        uint256[ATTR_NUM*2+1] memory input;
         input[0] = userCertificates[msg.sender][verifiersList[verifierId]];
-        for (uint8 i=0; i<ATTR_NUM; i++) {
-            input[i+1] = challenges[challengeId].minAttributes[i];
+        for (uint256 i=0; i<ATTR_NUM; i++) {
+            input[i+1] = challenges[challengeId].direction[i];
+            input[i+1+ATTR_NUM] = challenges[challengeId].minAttributes[i];
         }
 
         bool outcome = _verifyProof(input, proof);

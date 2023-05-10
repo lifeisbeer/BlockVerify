@@ -28,9 +28,10 @@ describe("BlockVerify", function () {
     const userCertificate = "19291942765737016641315490180792170985811752680615714997126424296971201214309";
 
     const challenge = "test";
+    const direction = ["0", "0", "0"];
     const minAttributes = ["0", "70", "670"]; 
 
-    return { password, salt, userId, userAttributes, userCertificate, challenge, minAttributes };
+    return { password, salt, userId, userAttributes, userCertificate, challenge, direction, minAttributes };
   }
 
   it("Owner adding a verifier", async function () {
@@ -77,15 +78,16 @@ describe("BlockVerify", function () {
   it("Challenger posting a challenge", async function () {
 
     const { challenger, blockVerify } = await loadFixture( deployFixture );      
-    const { challenge, minAttributes } = await loadFixture( userFixture );
+    const { challenge, direction, minAttributes } = await loadFixture( userFixture );
 
     expect(await blockVerify.challengeNum()).to.equal(0);
 
-    await blockVerify.connect(challenger).createChallenge(challenge, minAttributes);
+    await blockVerify.connect(challenger).createChallenge(challenge, direction, minAttributes);
 
     expect(await blockVerify.challengeNum()).to.equal(1);
     const retChallenge = await blockVerify.viewChallenge(0);
     expect(retChallenge['description']).to.equal(challenge);
+    expect(retChallenge['direction']).to.deep.equal(direction);
     expect(retChallenge['minAttributes']).to.deep.equal(minAttributes);
     expect(retChallenge['responses']).to.deep.equal([]);
   });
@@ -93,15 +95,15 @@ describe("BlockVerify", function () {
   it("User responds to a challenge", async function () {
       
     const { owner, verifier, user, challenger, blockVerify } = await loadFixture( deployFixture );
-    const { password, salt, userAttributes, userCertificate, challenge, minAttributes } = await loadFixture( userFixture );
+    const { password, salt, userAttributes, userCertificate, challenge, direction, minAttributes } = await loadFixture( userFixture );
 
     await blockVerify.connect(owner).addVerifier(verifier.address);
     await blockVerify.connect(verifier).verifyUser(userCertificate, user.address);
-    await blockVerify.connect(challenger).createChallenge(challenge, minAttributes);
+    await blockVerify.connect(challenger).createChallenge(challenge, direction, minAttributes);
 
     const userId = await calcUser(password, salt);
     const certificate = await calcCertificate(userId, userAttributes);
-    const proof = await callData(password, salt, userAttributes, certificate, minAttributes);
+    const proof = await callData(password, salt, userAttributes, certificate, direction, minAttributes);
 
     const retChallengeBefore = await blockVerify.viewChallenge(0);
     expect(retChallengeBefore['responses']).to.deep.equal([]);

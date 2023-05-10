@@ -48,6 +48,7 @@ template Suitability(attrNum) {
 
     // public inputs
     signal input certificate;
+    signal input direction[attrNum]; // 0 for <=, 1 for >
     signal input minAttributes[attrNum];
 
     // calculate user id
@@ -60,13 +61,30 @@ template Suitability(attrNum) {
     CalculateCertificate.user <== CalculateUser.user;
 
     component less[attrNum];
+    component dZero[attrNum];
     for (var i = 0; i < attrNum; i++) {
 
+        // we want direction[i] == 0 or direction[i] == 1, 
+        // but user might send something else, so we need 0 to stay 0
+        // and anything else to become 1
+        dZero[i] = IsZero();
+        dZero[i].in <== direction[i];
+        // dZero[i].out === 1 if direction[i] == 0, 0 otherwise
+
         // constraint: minAttributes[i] <= attributes[i]
-        less[i] = LessEqThan(10); // 10 bits, range: 0 - 1023
+        less[i] = LessEqThan(32); // 32 bit numbers
         less[i].in[0] <== minAttributes[i];
         less[i].in[1] <== attributes[i];
-        less[i].out === 1; // 1 if minAttributes[i] <= attributes[i], 0 otherwise
+        // less[i].out === 1 if minAttributes[i] <= attributes[i], 0 otherwise
+
+        // if direction[i] == 0 (dZero[i].out === 1)
+        //      then we need the check minAttributes[i] <= attributes[i],
+        //      so we need to check if less[i].out === 1
+        // if direction[i] == 1 (dZero[i].out === 0)
+        //      then we need the check minAttributes[i] > attributes[i],
+        //      so we need to check if less[i].out === 0
+        // so we can check if dZero[i].out === less[i].out
+        dZero[i].out === less[i].out;
 
         CalculateCertificate.attributes[i] <== attributes[i];
     }
@@ -74,4 +92,4 @@ template Suitability(attrNum) {
     CalculateCertificate.certificate === certificate;
 }
 
-component main {public [certificate, minAttributes]} = Suitability(3); // Certificate with 3 attributes
+component main {public [certificate, direction, minAttributes]} = Suitability(3); // Certificate with 3 attributes
