@@ -70,6 +70,11 @@ contract zkSuitability {
         userCertificates[user][msg.sender] = certificate;
     }
 
+    function deleteUserCertificate(address user) public isVerifier {
+        require(userCertificates[user][msg.sender] > 0, "User is not verified by you");
+        userCertificates[user][msg.sender] = 0;
+    }
+
     function createChallenge(
         string calldata description, 
         uint8[ATTR_NUM] calldata direction,
